@@ -1,44 +1,174 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="#000000">
 
     <androidx.camera.view.PreviewView
         android:id="@+id/previewView"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <TextView
-        android:id="@+id/statusText"
+    <!-- Top bar -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:padding="14dp">
+
+        <View
+            android:id="@+id/recDot"
+            android:layout_width="10dp"
+            android:layout_height="10dp"
+            android:background="@color/neon_red"
+            android:visibility="invisible"/>
+
+        <TextView
+            android:id="@+id/statusText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="8dp"
+            android:text="CineCam"
+            android:textColor="@color/text_white"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/formatToggle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_chip"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="6dp"
+            android:text="H.264"
+            android:textColor="@color/text_white"
+            android:textSize="11sp"
+            android:layout_marginEnd="6dp"/>
+
+        <TextView
+            android:id="@+id/resToggle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_chip"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="6dp"
+            android:text="1080p"
+            android:textColor="@color/text_white"
+            android:textSize="11sp"
+            android:layout_marginEnd="6dp"/>
+
+        <TextView
+            android:id="@+id/histToggle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_chip"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="6dp"
+            android:text="HIST"
+            android:textColor="@color/text_white"
+            android:textSize="11sp"/>
+
+    </LinearLayout>
+
+    <!-- FPS row -->
+    <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="top|center_horizontal"
-        android:layout_marginTop="40dp"
-        android:text="CineCam"
-        android:textColor="#FFFFFF"
-        android:textSize="18sp" />
+        android:layout_gravity="top|end"
+        android:layout_marginTop="52dp"
+        android:layout_marginEnd="14dp"
+        android:orientation="horizontal">
+
+        <TextView android:id="@+id/fps24" android:text="24" android:textColor="@color/text_white" android:textSize="11sp" android:background="@drawable/bg_chip" android:paddingHorizontal="10dp" android:paddingVertical="5dp" android:layout_marginEnd="4dp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+        <TextView android:id="@+id/fps30" android:text="30" android:textColor="@color/text_white" android:textSize="11sp" android:background="@drawable/bg_chip" android:paddingHorizontal="10dp" android:paddingVertical="5dp" android:layout_marginEnd="4dp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+        <TextView android:id="@+id/fps60" android:text="60" android:textColor="@color/text_white" android:textSize="11sp" android:background="@drawable/bg_chip" android:paddingHorizontal="10dp" android:paddingVertical="5dp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+
+    </LinearLayout>
+
+    <!-- Histogram overlay (hidden by default) -->
+    <TextView
+        android:id="@+id/histView"
+        android:layout_width="120dp"
+        android:layout_height="60dp"
+        android:layout_gravity="top|start"
+        android:layout_marginTop="90dp"
+        android:layout_marginStart="14dp"
+        android:background="#66000000"
+        android:gravity="center"
+        android:text="Histogram"
+        android:textColor="@color/text_dim"
+        android:textSize="10sp"
+        android:visibility="gone"/>
+
+    <!-- Bottom glass panel -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:maxHeight="360dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom"
         android:orientation="vertical"
-        android:padding="16dp"
-        android:background="#88000000">
+        android:layout_margin="10dp"
+        android:padding="14dp"
+        android:background="@drawable/bg_glass_panel">
 
-        <TextView android:id="@+id/isoLabel" android:text="ISO: 100" android:textColor="#FFF" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-        <SeekBar android:id="@+id/isoSeek" android:max="1500" android:progress="0" android:layout_width="match_parent" android:layout_height="wrap_content"/>
+        <!-- ISO -->
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="8dp">
+            <TextView android:layout_width="62dp" android:layout_height="wrap_content" android:text="ISO" android:textColor="@color/text_dim" android:textSize="11sp"/>
+            <TextView android:id="@+id/isoMinus" android:layout_width="36dp" android:layout_height="36dp" android:gravity="center" android:text="−" android:textColor="@color/text_white" android:textSize="18sp" android:background="@drawable/bg_stepper_button"/>
+            <TextView android:id="@+id/isoValue" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:gravity="center" android:text="100" android:textColor="@color/text_white" android:textSize="15sp" android:textStyle="bold"/>
+            <TextView android:id="@+id/isoPlus" android:layout_width="36dp" android:layout_height="36dp" android:gravity="center" android:text="+" android:textColor="@color/text_white" android:textSize="18sp" android:background="@drawable/bg_stepper_button"/>
+        </LinearLayout>
 
-        <TextView android:id="@+id/shutterLabel" android:text="Shutter: 1/60" android:textColor="#FFF" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-        <SeekBar android:id="@+id/shutterSeek" android:max="940" android:progress="0" android:layout_width="match_parent" android:layout_height="wrap_content"/>
+        <!-- Shutter -->
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="8dp">
+            <TextView android:layout_width="62dp" android:layout_height="wrap_content" android:text="SHUTTER" android:textColor="@color/text_dim" android:textSize="10sp"/>
+            <TextView android:id="@+id/shutterMinus" android:layout_width="36dp" android:layout_height="36dp" android:gravity="center" android:text="−" android:textColor="@color/text_white" android:textSize="18sp" android:background="@drawable/bg_stepper_button"/>
+            <TextView android:id="@+id/shutterValue" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:gravity="center" android:text="1/60" android:textColor="@color/text_white" android:textSize="15sp" android:textStyle="bold"/>
+            <TextView android:id="@+id/shutterPlus" android:layout_width="36dp" android:layout_height="36dp" android:gravity="center" android:text="+" android:textColor="@color/text_white" android:textSize="18sp" android:background="@drawable/bg_stepper_button"/>
+        </LinearLayout>
 
-        <TextView android:id="@+id/wbLabel" android:text="White Balance: 5500K" android:textColor="#FFF" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-        <SeekBar android:id="@+id/wbSeek" android:max="7500" android:progress="3500" android:layout_width="match_parent" android:layout_height="wrap_content"/>
+        <!-- White Balance -->
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="8dp">
+            <TextView android:layout_width="62dp" android:layout_height="wrap_content" android:text="WB" android:textColor="@color/text_dim" android:textSize="11sp"/>
+            <TextView android:id="@+id/wbMinus" android:layout_width="36dp" android:layout_height="36dp" android:gravity="center" android:text="−" android:textColor="@color/text_white" android:textSize="18sp" android:background="@drawable/bg_stepper_button"/>
+            <TextView android:id="@+id/wbValue" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:gravity="center" android:text="5500K" android:textColor="@color/text_white" android:textSize="15sp" android:textStyle="bold"/>
+            <TextView android:id="@+id/wbPlus" android:layout_width="36dp" android:layout_height="36dp" android:gravity="center" android:text="+" android:textColor="@color/text_white" android:textSize="18sp" android:background="@drawable/bg_stepper_button"/>
+        </LinearLayout>
 
-        <TextView android:id="@+id/stabLabel" android:text="Stabilization: ON" android:textColor="#FFF" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+        <!-- EV Compensation -->
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="8dp">
+            <TextView android:layout_width="62dp" android:layout_height="wrap_content" android:text="EV" android:textColor="@color/text_dim" android:textSize="11sp"/>
+            <TextView android:id="@+id/evMinus" android:layout_width="36dp" android:layout_height="36dp" android:gravity="center" android:text="−" android:textColor="@color/text_white" android:textSize="18sp" android:background="@drawable/bg_stepper_button"/>
+            <TextView android:id="@+id/evValue" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:gravity="center" android:text="0.0" android:textColor="@color/text_white" android:textSize="15sp" android:textStyle="bold"/>
+            <TextView android:id="@+id/evPlus" android:layout_width="36dp" android:layout_height="36dp" android:gravity="center" android:text="+" android:textColor="@color/text_white" android:textSize="18sp" android:background="@drawable/bg_stepper_button"/>
+        </LinearLayout>
 
-        <Button android:id="@+id/recordButton" android:text="Record" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp"/>
+        <!-- Manual Focus -->
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="10dp">
+            <TextView android:layout_width="62dp" android:layout_height="wrap_content" android:text="FOCUS" android:textColor="@color/text_dim" android:textSize="11sp"/>
+            <SeekBar android:id="@+id/focusSeek" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="100" android:progress="50"/>
+            <TextView android:id="@+id/afButton" android:layout_width="wrap_content" android:layout_height="36dp" android:gravity="center" android:text="AF" android:textColor="@color/text_white" android:textSize="12sp" android:paddingHorizontal="12dp" android:background="@drawable/bg_stepper_button"/>
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/recordButton"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:layout_gravity="center_horizontal"
+            android:gravity="center"
+            android:text="REC"
+            android:textColor="@color/text_white"
+            android:textStyle="bold"
+            android:background="@drawable/bg_record_button"/>
 
     </LinearLayout>
+    </ScrollView>
 
 </FrameLayout>
