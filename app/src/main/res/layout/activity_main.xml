@@ -9,7 +9,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <!-- Top bar -->
+    <!-- Top bar row 1 -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -37,13 +37,13 @@
             android:textStyle="bold" />
 
         <TextView
-            android:id="@+id/formatToggle"
+            android:id="@+id/camToggle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@drawable/bg_chip"
             android:paddingHorizontal="12dp"
             android:paddingVertical="6dp"
-            android:text="H.264"
+            android:text="CAM0"
             android:textColor="@color/text_white"
             android:textSize="11sp"
             android:layout_marginEnd="6dp"/>
@@ -73,14 +73,39 @@
 
     </LinearLayout>
 
-    <!-- FPS row -->
+    <!-- Top bar row 2 -->
     <LinearLayout
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="top|end"
-        android:layout_marginTop="52dp"
-        android:layout_marginEnd="14dp"
-        android:orientation="horizontal">
+        android:layout_gravity="top"
+        android:layout_marginTop="48dp"
+        android:orientation="horizontal"
+        android:gravity="end|center_vertical"
+        android:paddingHorizontal="14dp">
+
+        <TextView
+            android:id="@+id/bitrateToggle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_chip"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="6dp"
+            android:text="50Mbps"
+            android:textColor="@color/text_white"
+            android:textSize="11sp"
+            android:layout_marginEnd="6dp"/>
+
+        <TextView
+            android:id="@+id/slogToggle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_chip"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="6dp"
+            android:text="S-LOG"
+            android:textColor="@color/text_white"
+            android:textSize="11sp"
+            android:layout_marginEnd="6dp"/>
 
         <TextView android:id="@+id/fps24" android:text="24" android:textColor="@color/text_white" android:textSize="11sp" android:background="@drawable/bg_chip" android:paddingHorizontal="10dp" android:paddingVertical="5dp" android:layout_marginEnd="4dp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
         <TextView android:id="@+id/fps30" android:text="30" android:textColor="@color/text_white" android:textSize="11sp" android:background="@drawable/bg_chip" android:paddingHorizontal="10dp" android:paddingVertical="5dp" android:layout_marginEnd="4dp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
@@ -88,19 +113,15 @@
 
     </LinearLayout>
 
-    <!-- Histogram overlay (hidden by default) -->
-    <TextView
+    <!-- Real Histogram -->
+    <com.mrhish.cinecam.HistogramView
         android:id="@+id/histView"
-        android:layout_width="120dp"
+        android:layout_width="130dp"
         android:layout_height="60dp"
         android:layout_gravity="top|start"
-        android:layout_marginTop="90dp"
+        android:layout_marginTop="96dp"
         android:layout_marginStart="14dp"
         android:background="#66000000"
-        android:gravity="center"
-        android:text="Histogram"
-        android:textColor="@color/text_dim"
-        android:textSize="10sp"
         android:visibility="gone"/>
 
     <!-- Bottom glass panel -->
