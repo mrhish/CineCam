@@ -2,11 +2,9 @@ package com.mrhish.cinecam
 
 import android.Manifest
 import android.content.pm.PackageManager
-import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CaptureRequest
 import android.os.Bundle
 import android.util.Range
-import android.widget.Button
 import android.widget.SeekBar
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
@@ -22,22 +20,28 @@ import androidx.core.content.ContextCompat
 import java.text.SimpleDateFormat
 import java.util.*
 
-@androidx.camera.camera2.interop.ExperimentalCamera2Interop
+@ExperimentalCamera2Interop
 class MainActivity : AppCompatActivity() {
 
     private lateinit var previewView: PreviewView
     private lateinit var statusText: TextView
-    private lateinit var recordButton: Button
+    private lateinit var recordButton: TextView
+    private lateinit var recDot: android.view.View
+    private lateinit var histView: TextView
     private var recording: Recording? = null
     private lateinit var videoCapture: VideoCapture<Recorder>
     private lateinit var stabilizer: StabilizerHelper
     private val CAMERA_PERMISSION_CODE = 100
 
     private var currentIso = 100
-    private var currentShutterNs = 16666667L // 1/60s in ns
+    private var currentShutterDenom = 60
     private var currentWbKelvin = 5500
-
-    private var previewBuilder: Preview.Builder? = null
+    private var currentEv = 0
+    private var currentFps = 30
+    private var manualFocusValue = 5.0f
+    private var useAF = true
+    private var quality = Quality.FHD
+    private var histVisible = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,29 +50,90 @@ class MainActivity : AppCompatActivity() {
         previewView = findViewById(R.id.previewView)
         statusText = findViewById(R.id.statusText)
         recordButton = findViewById(R.id.recordButton)
+        recDot = findViewById(R.id.recDot)
+        histView = findViewById(R.id.histView)
 
-        val isoLabel = findViewById<TextView>(R.id.isoLabel)
-        val shutterLabel = findViewById<TextView>(R.id.shutterLabel)
-        val wbLabel = findViewById<TextView>(R.id.wbLabel)
+        val isoValue = findViewById<TextView>(R.id.isoValue)
+        val shutterValue = findViewById<TextView>(R.id.shutterValue)
+        val wbValue = findViewById<TextView>(R.id.wbValue)
+        val evValue = findViewById<TextView>(R.id.evValue)
 
-        findViewById<SeekBar>(R.id.isoSeek).setOnSeekBarChangeListener(simpleSeek {
-            currentIso = 100 + it
-            isoLabel.text = "ISO: $currentIso"
+        findViewById<TextView>(R.id.isoMinus).setOnClickListener {
+            currentIso = (currentIso - 50).coerceAtLeast(50)
+            isoValue.text = "$currentIso"
             restartCamera()
+        }
+        findViewById<TextView>(R.id.isoPlus).setOnClickListener {
+            currentIso = (currentIso + 50).coerceAtMost(3200)
+            isoValue.text = "$currentIso"
+            restartCamera()
+        }
+
+        findViewById<TextView>(R.id.shutterMinus).setOnClickListener {
+            currentShutterDenom = (currentShutterDenom - 10).coerceAtLeast(10)
+            shutterValue.text = "1/$currentShutterDenom"
+            restartCamera()
+        }
+        findViewById<TextView>(R.id.shutterPlus).setOnClickListener {
+            currentShutterDenom = (currentShutterDenom + 10).coerceAtMost(2000)
+            shutterValue.text = "1/$currentShutterDenom"
+            restartCamera()
+        }
+
+        findViewById<TextView>(R.id.wbMinus).setOnClickListener {
+            currentWbKelvin = (currentWbKelvin - 100).coerceAtLeast(2000)
+            wbValue.text = "${currentWbKelvin}K"
+            restartCamera()
+        }
+        findViewById<TextView>(R.id.wbPlus).setOnClickListener {
+            currentWbKelvin = (currentWbKelvin + 100).coerceAtMost(9500)
+            wbValue.text = "${currentWbKelvin}K"
+            restartCamera()
+        }
+
+        findViewById<TextView>(R.id.evMinus).setOnClickListener {
+            currentEv = (currentEv - 1).coerceAtLeast(-6)
+            evValue.text = String.format("%.1f", currentEv.toFloat())
+            restartCamera()
+        }
+        findViewById<TextView>(R.id.evPlus).setOnClickListener {
+            currentEv = (currentEv + 1).coerceAtMost(6)
+            evValue.text = String.format("%.1f", currentEv.toFloat())
+            restartCamera()
+        }
+
+        findViewById<SeekBar>(R.id.focusSeek).setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                if (fromUser) {
+                    useAF = false
+                    manualFocusValue = (100 - progress) / 10f
+                    restartCamera()
+                }
+            }
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
         })
 
-        findViewById<SeekBar>(R.id.shutterSeek).setOnSeekBarChangeListener(simpleSeek {
-            val denom = 60 + it
-            currentShutterNs = (1_000_000_000L / denom)
-            shutterLabel.text = "Shutter: 1/$denom"
+        findViewById<TextView>(R.id.afButton).setOnClickListener {
+            useAF = true
             restartCamera()
-        })
+        }
 
-        findViewById<SeekBar>(R.id.wbSeek).setOnSeekBarChangeListener(simpleSeek {
-            currentWbKelvin = 2500 + it
-            wbLabel.text = "White Balance: ${currentWbKelvin}K"
+        findViewById<TextView>(R.id.fps24).setOnClickListener { currentFps = 24; restartCamera() }
+        findViewById<TextView>(R.id.fps30).setOnClickListener { currentFps = 30; restartCamera() }
+        findViewById<TextView>(R.id.fps60).setOnClickListener { currentFps = 60; restartCamera() }
+
+        findViewById<TextView>(R.id.resToggle).setOnClickListener { view ->
+            val chip = view as TextView
+            quality = if (quality == Quality.FHD) Quality.UHD else Quality.FHD
+            chip.text = if (quality == Quality.UHD) "4K" else "1080p"
             restartCamera()
-        })
+        }
+
+        findViewById<TextView>(R.id.histToggle).setOnClickListener {
+            histVisible = !histVisible
+            histView.visibility = if (histVisible) android.view.View.VISIBLE else android.view.View.GONE
+        }
 
         stabilizer = StabilizerHelper(this) { x, y ->
             val offsetX = (-x * 6f).coerceIn(-20f, 20f)
@@ -87,14 +152,6 @@ class MainActivity : AppCompatActivity() {
         }
 
         recordButton.setOnClickListener { toggleRecording() }
-    }
-
-    private fun simpleSeek(onChange: (Int) -> Unit) = object : SeekBar.OnSeekBarChangeListener {
-        override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-            if (fromUser) onChange(progress)
-        }
-        override fun onStartTrackingTouch(seekBar: SeekBar?) {}
-        override fun onStopTrackingTouch(seekBar: SeekBar?) {}
     }
 
     override fun onRequestPermissionsResult(
@@ -132,7 +189,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             val recorder = Recorder.Builder()
-                .setQualitySelector(QualitySelector.from(Quality.HIGHEST))
+                .setQualitySelector(QualitySelector.from(quality))
                 .build()
             videoCapture = VideoCapture.withOutput(recorder)
 
@@ -152,8 +209,16 @@ class MainActivity : AppCompatActivity() {
         val extender = Camera2Interop.Extender(builder)
         extender.setCaptureRequestOption(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_OFF)
         extender.setCaptureRequestOption(CaptureRequest.SENSOR_SENSITIVITY, currentIso)
-        extender.setCaptureRequestOption(CaptureRequest.SENSOR_EXPOSURE_TIME, currentShutterNs)
+        extender.setCaptureRequestOption(CaptureRequest.SENSOR_EXPOSURE_TIME, 1_000_000_000L / currentShutterDenom)
         extender.setCaptureRequestOption(CaptureRequest.CONTROL_AWB_MODE, CaptureRequest.CONTROL_AWB_MODE_OFF)
+        extender.setCaptureRequestOption(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, Range(currentFps, currentFps))
+
+        if (useAF) {
+            extender.setCaptureRequestOption(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_VIDEO)
+        } else {
+            extender.setCaptureRequestOption(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_OFF)
+            extender.setCaptureRequestOption(CaptureRequest.LENS_FOCUS_DISTANCE, manualFocusValue)
+        }
     }
 
     private fun restartCamera() {
@@ -164,7 +229,8 @@ class MainActivity : AppCompatActivity() {
         if (recording != null) {
             recording?.stop()
             recording = null
-            recordButton.text = "Record"
+            recordButton.text = "REC"
+            recDot.visibility = android.view.View.INVISIBLE
             return
         }
 
@@ -180,6 +246,7 @@ class MainActivity : AppCompatActivity() {
             .withAudioEnabled()
             .start(ContextCompat.getMainExecutor(this)) { }
 
-        recordButton.text = "Stop"
+        recordButton.text = "STOP"
+        recDot.visibility = android.view.View.VISIBLE
     }
 }
